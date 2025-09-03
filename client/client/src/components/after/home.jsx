@@ -1,30 +1,28 @@
 import React from "react";
-import Type from "./type.jsx";
+import About from "./about.jsx";
 import Footer from "./footer.jsx";
-import Input from "./InputBox.jsx";
-import Faq from "./Faq.jsx";
-import Review from "./Review.jsx";
+import Input from "./input.jsx";
+import Premium from "./Review.jsx";
 import b1 from "../../assets/b1.png";
 function Home() {
- const pageStyle = {
-  minHeight: "100vh",              
-  width: "100%",
-  display: "flex",                 
-  flexDirection: "column",         
-  backgroundImage: `url(${b1})`,   
-  backgroundSize: "cover",         
-  backgroundPosition: "center",    
-  backgroundRepeat: "no-repeat",   
-  backgroundAttachment: "fixed",   
-  overflowX: "hidden",
-};
+  const pageStyle = {
+    minHeight: "100vh",              // full viewport height
+    width: "100%",
+    display: "flex",
+    flexDirection: "column",         // stack vertically
+    backgroundImage:
+      `url(${b1})`, // 🔹 background image
+    backgroundSize: "cover",         // cover the whole screen
+    backgroundPosition: "center",    // keep centered
+    backgroundRepeat: "no-repeat",   // no tiling
+    overflowX: "hidden",
+  };
 
   const mainStyle = {
     flex: 1,                         
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
-    gap:"10px",
   };
 
   const navbarStyle = {
@@ -60,14 +58,20 @@ function Home() {
         {/* Navbar */}
         <nav style={navbarStyle}>
           <div style={brandStyle}>MoodWaves</div>
-        </nav>      
-        <Type/>
+        </nav>
+
+        {/* Content sections */}
+        
+        
+        <About/>
+        <br/><br/><br/>
         <Input />  
-       
-        <Review/>
-        <Faq />
-        <Footer />
+        <Premium />
+        
       </main>
+
+      {/* Footer always at bottom */}
+      <Footer />
     </div>
   );
 }

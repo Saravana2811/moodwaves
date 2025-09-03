@@ -1,5 +1,5 @@
 import React from "react";
-import Banner from "./Banner";
+
 const experts = [
   {
     name: "Rajesh Kumar",
@@ -25,14 +25,6 @@ const experts = [
     img: "https://cdn-icons-png.flaticon.com/512/2922/2922688.png",
     phone: "tel:+919876543212",
   },
-  {
-    name: "Arun",
-    service: "Painting",
-    experience: "5 years",
-    location: "Erode",
-    img: "https://cdn-icons-png.flaticon.com/512/2922/2922688.png",
-    phone: "tel:+919876543212",
-  },
   
 ];
 
@@ -40,7 +32,7 @@ function Review() {
   const pageStyle = {
     
     minHeight: "100vh",
-    padding: "40px",
+    padding: "40px 0",
     fontFamily: "Segoe UI, Arial, sans-serif",
   };
 
@@ -69,13 +61,13 @@ function Review() {
 
   const cardStyle = {
     background: "#fff",
-    borderRadius: "220px",
+    borderRadius: "22px",
     boxShadow: "0 4px 24px rgba(0,0,0,0.08)",
     padding: "32px 24px",
     minWidth: "240px",
     maxWidth: "260px",
     textAlign: "center",
-    
+    marginBottom: "24px",
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
@@ -142,8 +134,6 @@ function Review() {
           </div>
         ))}
       </div>
-      <br/><br/>
-      <Banner/>
     </div>
   );
 }
