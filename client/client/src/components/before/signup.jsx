@@ -8,7 +8,6 @@ function SignUp() {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [touched, setTouched] = useState({ name: false, email: false, password: false, confirmPassword: false })
-  const [error, setError] = useState('')
   const navigate = useNavigate()
 
   const pageStyle = {
@@ -96,31 +95,17 @@ function SignUp() {
   const isConfirmValid = useMemo(() => confirmPassword === password && confirmPassword.length > 0, [confirmPassword, password])
   const isFormValid = isEmailValid && isPasswordValid && isNameValid && isConfirmValid
 
-  async function handleSubmit(event) {
+  function handleSubmit(event) {
     event.preventDefault()
     setTouched({ name: true, email: true, password: true, confirmPassword: true })
     if (!isFormValid) return
-
-    try {
-      const res = await fetch("http://localhost:5000/api/auth/signup", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password })
-      })
-
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.message)
-      navigate('/login')
-    } catch (err) {
-      setError(err.message)
-    }
+    navigate('/home')
   }
 
   return (
     <div style={pageStyle}>
       <form style={cardStyle} onSubmit={handleSubmit}>
         <h2 style={titleStyle}>Create your account</h2>
-        {error && <p style={{ color: '#f87171', marginBottom: '8px' }}>{error}</p>}
 
         <label style={fieldStyle}>
           <span>Name</span>
@@ -133,7 +118,9 @@ function SignUp() {
             style={inputStyle}
             required
           />
-          {touched.name && !isNameValid && <span style={hintStyle}>Name must be at least 2 characters.</span>}
+          {touched.name && !isNameValid && (
+            <span style={hintStyle}>Name must be at least 2 characters.</span>
+          )}
         </label>
 
         <label style={fieldStyle}>
@@ -147,7 +134,9 @@ function SignUp() {
             style={inputStyle}
             required
           />
-          {touched.email && !isEmailValid && <span style={hintStyle}>Enter a valid email.</span>}
+          {touched.email && !isEmailValid && (
+            <span style={hintStyle}>Enter a valid email.</span>
+          )}
         </label>
 
         <label style={fieldStyle}>
@@ -166,7 +155,9 @@ function SignUp() {
               {showPassword ? 'Hide' : 'Show'}
             </button>
           </div>
-          {touched.password && !isPasswordValid && <span style={hintStyle}>Must be at least 6 characters.</span>}
+          {touched.password && !isPasswordValid && (
+            <span style={hintStyle}>Must be at least 6 characters.</span>
+          )}
         </label>
 
         <label style={fieldStyle}>
@@ -180,7 +171,9 @@ function SignUp() {
             style={inputStyle}
             required
           />
-          {touched.confirmPassword && !isConfirmValid && <span style={hintStyle}>Passwords must match.</span>}
+          {touched.confirmPassword && !isConfirmValid && (
+            <span style={hintStyle}>Passwords must match.</span>
+          )}
         </label>
 
         <button type="submit" style={buttonStyle} disabled={!isFormValid}>Sign up</button>
@@ -194,3 +187,5 @@ function SignUp() {
 }
 
 export default SignUp
+
+

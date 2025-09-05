@@ -33,15 +33,15 @@ function BeforeSignIn() {
   };
 
   const brandStyle = {
-    fontSize: "3.4rem",
-    fontWeight: 900,
-    fontFamily: "'Pacifico', Segoe Script, cursive",
-    letterSpacing: "1px",
+    fontSize: "20px",
+    fontWeight: 800,
+    fontFamily: "",
+    letterSpacing: "0.5px",
     background: "white",
     WebkitBackgroundClip: "text",
     WebkitTextFillColor: "transparent",
     backgroundClip: "text",
-    
+    cursor: "pointer",
   };
 
   const navActionsStyle = {
