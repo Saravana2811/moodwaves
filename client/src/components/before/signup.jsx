@@ -8,7 +8,10 @@ function SignUp() {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [touched, setTouched] = useState({ name: false, email: false, password: false, confirmPassword: false })
+<<<<<<< HEAD
   const [error, setError] = useState('')
+=======
+>>>>>>> 51728fede5949cc21aa0d470c4ea92a01a33e4f4
   const navigate = useNavigate()
 
   const pageStyle = {
@@ -96,6 +99,7 @@ function SignUp() {
   const isConfirmValid = useMemo(() => confirmPassword === password && confirmPassword.length > 0, [confirmPassword, password])
   const isFormValid = isEmailValid && isPasswordValid && isNameValid && isConfirmValid
 
+<<<<<<< HEAD
   async function handleSubmit(event) {
     event.preventDefault()
     setTouched({ name: true, email: true, password: true, confirmPassword: true })
@@ -114,13 +118,23 @@ function SignUp() {
     } catch (err) {
       setError(err.message)
     }
+=======
+  function handleSubmit(event) {
+    event.preventDefault()
+    setTouched({ name: true, email: true, password: true, confirmPassword: true })
+    if (!isFormValid) return
+    navigate('/home')
+>>>>>>> 51728fede5949cc21aa0d470c4ea92a01a33e4f4
   }
 
   return (
     <div style={pageStyle}>
       <form style={cardStyle} onSubmit={handleSubmit}>
         <h2 style={titleStyle}>Create your account</h2>
+<<<<<<< HEAD
         {error && <p style={{ color: '#f87171', marginBottom: '8px' }}>{error}</p>}
+=======
+>>>>>>> 51728fede5949cc21aa0d470c4ea92a01a33e4f4
 
         <label style={fieldStyle}>
           <span>Name</span>
@@ -133,7 +147,13 @@ function SignUp() {
             style={inputStyle}
             required
           />
+<<<<<<< HEAD
           {touched.name && !isNameValid && <span style={hintStyle}>Name must be at least 2 characters.</span>}
+=======
+          {touched.name && !isNameValid && (
+            <span style={hintStyle}>Name must be at least 2 characters.</span>
+          )}
+>>>>>>> 51728fede5949cc21aa0d470c4ea92a01a33e4f4
         </label>
 
         <label style={fieldStyle}>
@@ -147,7 +167,13 @@ function SignUp() {
             style={inputStyle}
             required
           />
+<<<<<<< HEAD
           {touched.email && !isEmailValid && <span style={hintStyle}>Enter a valid email.</span>}
+=======
+          {touched.email && !isEmailValid && (
+            <span style={hintStyle}>Enter a valid email.</span>
+          )}
+>>>>>>> 51728fede5949cc21aa0d470c4ea92a01a33e4f4
         </label>
 
         <label style={fieldStyle}>
@@ -166,7 +192,13 @@ function SignUp() {
               {showPassword ? 'Hide' : 'Show'}
             </button>
           </div>
+<<<<<<< HEAD
           {touched.password && !isPasswordValid && <span style={hintStyle}>Must be at least 6 characters.</span>}
+=======
+          {touched.password && !isPasswordValid && (
+            <span style={hintStyle}>Must be at least 6 characters.</span>
+          )}
+>>>>>>> 51728fede5949cc21aa0d470c4ea92a01a33e4f4
         </label>
 
         <label style={fieldStyle}>
@@ -180,7 +212,13 @@ function SignUp() {
             style={inputStyle}
             required
           />
+<<<<<<< HEAD
           {touched.confirmPassword && !isConfirmValid && <span style={hintStyle}>Passwords must match.</span>}
+=======
+          {touched.confirmPassword && !isConfirmValid && (
+            <span style={hintStyle}>Passwords must match.</span>
+          )}
+>>>>>>> 51728fede5949cc21aa0d470c4ea92a01a33e4f4
         </label>
 
         <button type="submit" style={buttonStyle} disabled={!isFormValid}>Sign up</button>
@@ -194,3 +232,8 @@ function SignUp() {
 }
 
 export default SignUp
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> 51728fede5949cc21aa0d470c4ea92a01a33e4f4

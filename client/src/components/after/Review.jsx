@@ -1,5 +1,9 @@
 import React from "react";
+<<<<<<< HEAD
 import Banner from "./Banner";
+=======
+
+>>>>>>> 51728fede5949cc21aa0d470c4ea92a01a33e4f4
 const experts = [
   {
     name: "Rajesh Kumar",
@@ -25,6 +29,7 @@ const experts = [
     img: "https://cdn-icons-png.flaticon.com/512/2922/2922688.png",
     phone: "tel:+919876543212",
   },
+<<<<<<< HEAD
   {
     name: "Arun",
     service: "Painting",
@@ -33,6 +38,8 @@ const experts = [
     img: "https://cdn-icons-png.flaticon.com/512/2922/2922688.png",
     phone: "tel:+919876543212",
   },
+=======
+>>>>>>> 51728fede5949cc21aa0d470c4ea92a01a33e4f4
   
 ];
 
@@ -40,7 +47,11 @@ function Review() {
   const pageStyle = {
     
     minHeight: "100vh",
+<<<<<<< HEAD
     padding: "40px",
+=======
+    padding: "40px 0",
+>>>>>>> 51728fede5949cc21aa0d470c4ea92a01a33e4f4
     fontFamily: "Segoe UI, Arial, sans-serif",
   };
 
@@ -69,13 +80,21 @@ function Review() {
 
   const cardStyle = {
     background: "#fff",
+<<<<<<< HEAD
     borderRadius: "220px",
+=======
+    borderRadius: "22px",
+>>>>>>> 51728fede5949cc21aa0d470c4ea92a01a33e4f4
     boxShadow: "0 4px 24px rgba(0,0,0,0.08)",
     padding: "32px 24px",
     minWidth: "240px",
     maxWidth: "260px",
     textAlign: "center",
+<<<<<<< HEAD
     
+=======
+    marginBottom: "24px",
+>>>>>>> 51728fede5949cc21aa0d470c4ea92a01a33e4f4
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
@@ -142,8 +161,11 @@ function Review() {
           </div>
         ))}
       </div>
+<<<<<<< HEAD
       <br/><br/>
       <Banner/>
+=======
+>>>>>>> 51728fede5949cc21aa0d470c4ea92a01a33e4f4
     </div>
   );
 }

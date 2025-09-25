@@ -6,7 +6,10 @@ function Login() {
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [touched, setTouched] = useState({ email: false, password: false })
+<<<<<<< HEAD
   const [error, setError] = useState('')
+=======
+>>>>>>> 51728fede5949cc21aa0d470c4ea92a01a33e4f4
   const navigate = useNavigate()
 
   const pageStyle = {
@@ -92,6 +95,7 @@ function Login() {
   const isPasswordValid = useMemo(() => password.length >= 6, [password])
   const isFormValid = isEmailValid && isPasswordValid
 
+<<<<<<< HEAD
   async function handleSubmit(event) {
     event.preventDefault()
     setTouched({ email: true, password: true })
@@ -110,13 +114,23 @@ function Login() {
     } catch (err) {
       setError(err.message)
     }
+=======
+  function handleSubmit(event) {
+    event.preventDefault()
+    setTouched({ email: true, password: true })
+    if (!isFormValid) return
+    navigate('/home')
+>>>>>>> 51728fede5949cc21aa0d470c4ea92a01a33e4f4
   }
 
   return (
     <div style={pageStyle}>
       <form style={cardStyle} onSubmit={handleSubmit}>
         <h2 style={titleStyle}>Log in to MoodTunes</h2>
+<<<<<<< HEAD
         {error && <p style={{ color: '#f87171', marginBottom: '8px' }}>{error}</p>}
+=======
+>>>>>>> 51728fede5949cc21aa0d470c4ea92a01a33e4f4
 
         <label style={fieldStyle}>
           <span>Email</span>
@@ -129,7 +143,13 @@ function Login() {
             style={inputStyle}
             required
           />
+<<<<<<< HEAD
           {touched.email && !isEmailValid && <span style={hintStyle}>Enter a valid email.</span>}
+=======
+          {touched.email && !isEmailValid && (
+            <span style={hintStyle}>Enter a valid email.</span>
+          )}
+>>>>>>> 51728fede5949cc21aa0d470c4ea92a01a33e4f4
         </label>
 
         <label style={fieldStyle}>
@@ -148,13 +168,23 @@ function Login() {
               {showPassword ? 'Hide' : 'Show'}
             </button>
           </div>
+<<<<<<< HEAD
           {touched.password && !isPasswordValid && <span style={hintStyle}>Must be at least 6 characters.</span>}
+=======
+          {touched.password && !isPasswordValid && (
+            <span style={hintStyle}>Must be at least 6 characters.</span>
+          )}
+>>>>>>> 51728fede5949cc21aa0d470c4ea92a01a33e4f4
         </label>
 
         <button type="submit" style={buttonStyle} disabled={!isFormValid}>Log in</button>
 
         <div style={{ marginTop: '12px', fontSize: '14px', color: '#9ca3af' }}>
+<<<<<<< HEAD
           Don&apos;t have an account? <Link to="/signup" style={{ color: '#93c5fd' }}>Sign up</Link>
+=======
+          Don\'t have an account? <Link to="/signup" style={{ color: '#93c5fd' }}>Sign up</Link>
+>>>>>>> 51728fede5949cc21aa0d470c4ea92a01a33e4f4
         </div>
       </form>
     </div>
@@ -162,3 +192,8 @@ function Login() {
 }
 
 export default Login
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> 51728fede5949cc21aa0d470c4ea92a01a33e4f4

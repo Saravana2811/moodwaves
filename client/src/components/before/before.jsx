@@ -33,15 +33,26 @@ function BeforeSignIn() {
   };
 
   const brandStyle = {
+<<<<<<< HEAD
     fontSize: "3.4rem",
     fontWeight: 900,
     fontFamily: "'Pacifico', Segoe Script, cursive",
     letterSpacing: "1px",
+=======
+    fontSize: "20px",
+    fontWeight: 800,
+    fontFamily: "",
+    letterSpacing: "0.5px",
+>>>>>>> 51728fede5949cc21aa0d470c4ea92a01a33e4f4
     background: "white",
     WebkitBackgroundClip: "text",
     WebkitTextFillColor: "transparent",
     backgroundClip: "text",
+<<<<<<< HEAD
     
+=======
+    cursor: "pointer",
+>>>>>>> 51728fede5949cc21aa0d470c4ea92a01a33e4f4
   };
 
   const navActionsStyle = {
