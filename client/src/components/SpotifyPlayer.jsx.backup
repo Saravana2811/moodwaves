@@ -1,0 +1,894 @@
+import React, { useState, useEffect, useRef } from 'react';
+import './SpotifyPlayer.css';
+
+const SpotifyPlayer = ({ message, accuracy, emotion }) => {
+  const [tracks, setTracks] = useState([]);
+  const [selectedTrack, setSelectedTrack] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [playbackStatus, setPlaybackStatus] = useState('stopped');
+  const [currentTime, setCurrentTime] = useState(0);
+  const [userInteracted, setUserInteracted] = useState(false);
+  const [lastPlayTime, setLastPlayTime] = useState(null);
+  const [playbackHistory, setPlaybackHistory] = useState([]);
+  const iframeRef = useRef(null);
+
+  // Get tracks based on emotion and accuracy
+  const getTrackRecommendations = async () => {
+    if (!emotion || accuracy === undefined) return;
+    
+    setLoading(true);
+    try {
+      const response = await fetch('http://localhost:5000/api/messages/tracks/search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ emotion, accuracy, limit: 6 })
+      });
+      
+      const data = await response.json();
+      if (data.tracks) {
+        setTracks(data.tracks);
+        if (data.tracks.length > 0) {
+          setSelectedTrack(data.tracks[0]);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching tracks:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (emotion && accuracy !== undefined) {
+      getTrackRecommendations();
+    }
+  }, [emotion, accuracy]);
+
+  // Enhanced playback status detection with user interaction tracking
+  useEffect(() => {
+    if (selectedTrack) {
+      setPlaybackStatus('loading');
+      setIsPlaying(false);
+      setCurrentTime(0);
+      setUserInteracted(false);
+      
+      // Record track selection
+      setPlaybackHistory(prev => [...prev.slice(-4), {
+        track: selectedTrack.name,
+        artist: selectedTrack.artists[0]?.name,
+        startTime: new Date().toLocaleTimeString(),
+        status: 'loading'
+      }]);
+      
+      // Simulate loading phase
+      const loadingTimer = setTimeout(() => {
+        setPlaybackStatus('ready');
+        setLastPlayTime(Date.now());
+      }, 1500);
+
+      // Start auto-play simulation (Spotify embeds often auto-play)
+      const autoPlayTimer = setTimeout(() => {
+        if (!userInteracted) {
+          setPlaybackStatus('playing');
+          setIsPlaying(true);
+          setPlaybackHistory(prev => {
+            const updated = [...prev];
+            if (updated.length > 0) {
+              updated[updated.length - 1].status = 'auto-playing';
+            }
+            return updated;
+          });
+        }
+      }, 3000);
+
+      // Enhanced progress tracking
+      const progressTimer = setInterval(() => {
+        if (playbackStatus === 'playing') {
+          setCurrentTime(prev => {
+            const newTime = prev + 1;
+            if (newTime >= 30) { // 30 second preview limit
+              setPlaybackStatus('ended');
+              setIsPlaying(false);
+              setPlaybackHistory(prevHistory => {
+                const updated = [...prevHistory];
+                if (updated.length > 0) {
+                  updated[updated.length - 1].status = 'completed';
+                  updated[updated.length - 1].endTime = new Date().toLocaleTimeString();
+                }
+                return updated;
+              });
+              return 0;
+            }
+            return newTime;
+          });
+        }
+      }, 1000);
+
+      return () => {
+        clearTimeout(loadingTimer);
+        clearTimeout(autoPlayTimer);
+        clearInterval(progressTimer);
+        setCurrentTime(0);
+      };
+    }
+  }, [selectedTrack]);
+
+  // Enhanced iframe interaction detection
+  const handleIframeInteraction = () => {
+    if (!userInteracted) {
+      setUserInteracted(true);
+      setPlaybackStatus('playing');
+      setIsPlaying(true);
+      setPlaybackHistory(prev => {
+        const updated = [...prev];
+        if (updated.length > 0) {
+          updated[updated.length - 1].status = 'user-playing';
+          updated[updated.length - 1].userInteractionTime = new Date().toLocaleTimeString();
+        }
+        return updated;
+      });
+    }
+  };
+
+  // Detect when user clicks on iframe area
+  useEffect(() => {
+    const handleWindowFocus = () => {
+      if (selectedTrack && playbackStatus === 'ready') {
+        handleIframeInteraction();
+      }
+    };
+
+    window.addEventListener('focus', handleWindowFocus);
+    return () => window.removeEventListener('focus', handleWindowFocus);
+  }, [selectedTrack, playbackStatus]);
+
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const getSpotifyEmbedUrl = (track) => {
+    if (!track) return null;
+    
+    // Try to get track ID from different sources
+    let trackId = null;
+    
+    // Method 1: From URI (spotify:track:ID)
+    if (track.uri && track.uri.includes('spotify:track:')) {
+      trackId = track.uri.split(':').pop();
+    }
+    // Method 2: From ID directly
+    else if (track.id) {
+      trackId = track.id;
+    }
+    // Method 3: From external URL
+    else if (track.external_urls?.spotify) {
+      const matches = track.external_urls.spotify.match(/track\/([a-zA-Z0-9]+)/);
+      if (matches) {
+        trackId = matches[1];
+      }
+    }
+    // Method 4: From external_url field (alternative naming)
+    else if (track.external_url) {
+      const matches = track.external_url.match(/track\/([a-zA-Z0-9]+)/);
+      if (matches) {
+        trackId = matches[1];
+      }
+    }
+    
+    // If we found a track ID, generate the embed URL with better parameters
+    if (trackId) {
+      return `https://open.spotify.com/embed/track/${trackId}?utm_source=generator&theme=0&autoplay=1&hide=0`;
+    }
+    
+    // Fallback: return null if no valid ID found
+    console.warn('Could not generate Spotify embed URL for track:', track);
+    return null;
+  };
+
+  const getSpotifyWebUrl = (track) => {
+    if (!track) return null;
+    
+    // Try to get track ID from different sources  
+    let trackId = null;
+    
+    if (track.uri && track.uri.includes('spotify:track:')) {
+      trackId = track.uri.split(':').pop();
+    } else if (track.id) {
+      trackId = track.id;
+    } else if (track.external_urls?.spotify) {
+      return track.external_urls.spotify;
+    } else if (track.external_url) {
+      return track.external_url;
+    }
+    
+    // Generate web URL if we have track ID
+    if (trackId) {
+      return `https://open.spotify.com/track/${trackId}`;
+    }
+    
+    return null;
+  };
+
+  // New function to get preview audio URL
+  const getPreviewUrl = (track) => {
+    if (!track) return null;
+    return track.preview_url || null;
+  };
+
+  // Handle direct audio preview playback
+  const playPreview = (track) => {
+    const previewUrl = getPreviewUrl(track);
+    if (previewUrl) {
+      const audio = new Audio(previewUrl);
+      audio.play().catch(e => {
+        console.warn('Preview playback failed:', e);
+        // Fallback to Spotify web player
+        window.open(getSpotifyWebUrl(track), '_blank');
+      });
+      
+      setPlaybackStatus('playing');
+      setIsPlaying(true);
+      setUserInteracted(true);
+      
+      // Stop after 30 seconds
+      setTimeout(() => {
+        audio.pause();
+        setPlaybackStatus('ended');
+        setIsPlaying(false);
+      }, 30000);
+    }
+  };
+
+  const getAccuracyBasedHeight = (accuracy) => {
+    // Higher accuracy = larger player
+    if (accuracy >= 0.8) return 352; // Full player with cover art
+    if (accuracy >= 0.6) return 232; // Compact player
+    return 152; // Mini player
+  };
+
+  if (loading) {
+    return (
+      <div style={{
+        background: "linear-gradient(135deg, #1DB954, #1ED760)",
+        padding: "20px",
+        borderRadius: "12px",
+        marginTop: "20px",
+        color: "white",
+        textAlign: "center"
+      }}>
+        <div style={{ fontSize: "1.5rem", marginBottom: "10px" }}>🎵</div>
+        <div>Finding the perfect songs for your {emotion} mood...</div>
+      </div>
+    );
+  }
+
+  if (!tracks.length) {
+    return null;
+  }
+
+  return (
+    <div style={{
+      background: "linear-gradient(135deg, #1DB954, #1ED760)",
+      padding: "20px",
+      borderRadius: "12px",
+      marginTop: "20px",
+      color: "white",
+      boxShadow: "0 4px 15px rgba(29, 185, 84, 0.3)"
+    }}>
+      {/* Header */}
+      <div style={{
+        display: "flex",
+        alignItems: "center",
+        gap: "10px",
+        marginBottom: "20px"
+      }}>
+        <div style={{ fontSize: "1.8rem" }}>🎵</div>
+        <div>
+          <div style={{ fontSize: "16px", fontWeight: "700" }}>
+            Music for Your {emotion.charAt(0).toUpperCase() + emotion.slice(1)} Mood
+          </div>
+          <div style={{ fontSize: "12px", opacity: "0.9" }}>
+            {accuracy >= 0.8 ? 'High-intensity' : accuracy >= 0.6 ? 'Medium-intensity' : 'Gentle'} songs 
+            based on {Math.round(accuracy * 100)}% accuracy
+          </div>
+        </div>
+      </div>
+
+      {/* Main Player */}
+      {selectedTrack && (
+        <div style={{
+          background: "rgba(0,0,0,0.3)",
+          borderRadius: "12px",
+          padding: "15px",
+          marginBottom: "20px",
+          border: isPlaying ? "2px solid #1DB954" : "2px solid rgba(255,255,255,0.2)",
+          boxShadow: isPlaying ? "0 0 20px rgba(29, 185, 84, 0.4)" : "none",
+          transition: "all 0.3s ease"
+        }}>
+          {/* Playback Status Header */}
+          <div style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            marginBottom: "10px"
+          }}>
+            <div style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "10px",
+              fontSize: "14px",
+              fontWeight: "700"
+            }}>
+              {/* Playback Status Icon */}
+              <div style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                color: isPlaying ? "#1DB954" : "#FFF"
+              }}>
+                {playbackStatus === 'loading' && (
+                  <div 
+                    className="spotify-loading"
+                    style={{
+                      width: "20px",
+                      height: "20px",
+                      border: "2px solid rgba(255,255,255,0.3)",
+                      borderTop: "2px solid #1DB954",
+                      borderRadius: "50%"
+                    }} 
+                  />
+                )}
+                {playbackStatus === 'playing' && (
+                  <div style={{
+                    display: "flex",
+                    gap: "3px"
+                  }}>
+                    <div className="spotify-pulse" style={{
+                      width: "4px",
+                      height: "16px",
+                      background: "#1DB954"
+                    }} />
+                    <div className="spotify-pulse" style={{
+                      width: "4px", 
+                      height: "16px",
+                      background: "#1DB954",
+                      animationDelay: "0.2s"
+                    }} />
+                    <div className="spotify-pulse" style={{
+                      width: "4px",
+                      height: "16px", 
+                      background: "#1DB954",
+                      animationDelay: "0.4s"
+                    }} />
+                  </div>
+                )}
+                {playbackStatus === 'ended' && (
+                  <div style={{ color: "#FFF", fontSize: "16px" }}>⏹️</div>
+                )}
+                {playbackStatus === 'stopped' && (
+                  <div style={{ color: "#FFF", fontSize: "16px" }}>⏸️</div>
+                )}
+                
+                <span>
+                  {playbackStatus === 'loading' && 'Loading...'}
+                  {playbackStatus === 'playing' && '� NOW PLAYING'}
+                  {playbackStatus === 'ended' && 'Preview Ended'}
+                  {playbackStatus === 'stopped' && 'Ready to Play'}
+                </span>
+              </div>
+            </div>
+
+            {/* Time Display */}
+            {(playbackStatus === 'playing' || playbackStatus === 'ended') && (
+              <div style={{
+                fontSize: "12px",
+                color: "#1DB954",
+                fontWeight: "600",
+                background: "rgba(29, 185, 84, 0.2)",
+                padding: "4px 8px",
+                borderRadius: "12px"
+              }}>
+                {formatTime(currentTime)} / 0:30
+              </div>
+            )}
+          </div>
+
+          {/* Enhanced Playback Status Display */}
+          <div style={{
+            background: "rgba(255, 255, 255, 0.1)",
+            padding: "15px",
+            borderRadius: "10px",
+            marginBottom: "15px",
+            border: "1px solid rgba(255, 255, 255, 0.2)"
+          }}>
+            <div style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              marginBottom: "10px"
+            }}>
+              <div style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "10px"
+              }}>
+                {/* Real-time Status Indicator */}
+                <div style={{
+                  width: "12px",
+                  height: "12px",
+                  borderRadius: "50%",
+                  background: isPlaying ? "#1DB954" : 
+                             playbackStatus === 'ready' ? "#FFA500" : 
+                             playbackStatus === 'loading' ? "#87CEEB" : "#888",
+                  boxShadow: isPlaying ? "0 0 10px #1DB954" : "none",
+                  animation: isPlaying ? "pulse 2s infinite" : "none"
+                }} />
+                
+                <div style={{ fontSize: "14px", fontWeight: "600" }}>
+                  {playbackStatus === 'loading' && '🔄 Loading music...'}
+                  {playbackStatus === 'ready' && '🎧 Click play in Spotify player below'}
+                  {playbackStatus === 'playing' && (userInteracted ? '🎵 You are listening' : '🎵 Auto-playing preview')}
+                  {playbackStatus === 'ended' && '✅ 30-second preview completed'}
+                  {playbackStatus === 'stopped' && '⏸️ Music paused'}
+                </div>
+              </div>
+
+              {/* Playback Timer */}
+              {(playbackStatus === 'playing' || playbackStatus === 'ended') && (
+                <div style={{
+                  background: isPlaying ? "#1DB954" : "rgba(255,255,255,0.2)",
+                  color: "white",
+                  padding: "5px 10px",
+                  borderRadius: "15px",
+                  fontSize: "12px",
+                  fontWeight: "600",
+                  minWidth: "60px",
+                  textAlign: "center"
+                }}>
+                  {formatTime(currentTime)} / 0:30
+                </div>
+              )}
+            </div>
+
+            {/* Progress Bar */}
+            {playbackStatus === 'playing' && (
+              <div style={{
+                width: "100%",
+                height: "6px",
+                background: "rgba(255,255,255,0.2)",
+                borderRadius: "3px",
+                overflow: "hidden",
+                marginBottom: "10px"
+              }}>
+                <div style={{
+                  width: `${(currentTime / 30) * 100}%`,
+                  height: "100%",
+                  background: "linear-gradient(90deg, #1DB954, #1ED760)",
+                  borderRadius: "3px",
+                  transition: "width 0.5s ease",
+                  position: "relative"
+                }}>
+                  <div style={{
+                    position: "absolute",
+                    right: "-2px",
+                    top: "-2px",
+                    width: "10px",
+                    height: "10px",
+                    background: "#1DB954",
+                    borderRadius: "50%",
+                    boxShadow: "0 0 5px rgba(29, 185, 84, 0.8)"
+                  }} />
+                </div>
+              </div>
+            )}
+
+            {/* User Interaction Status */}
+            {userInteracted && (
+              <div style={{
+                fontSize: "11px",
+                color: "#1DB954",
+                textAlign: "center",
+                fontWeight: "600",
+                background: "rgba(29, 185, 84, 0.2)",
+                padding: "5px 10px",
+                borderRadius: "12px",
+                border: "1px solid rgba(29, 185, 84, 0.4)"
+              }}>
+                🎯 You clicked to play at {playbackHistory[playbackHistory.length - 1]?.userInteractionTime || 'Unknown time'}
+              </div>
+            )}
+          </div>
+
+          {/* Track Info */}
+          <div style={{
+            fontSize: "14px",
+            fontWeight: "700",
+            marginBottom: "10px",
+            textAlign: "center"
+          }}>
+            🎧 {selectedTrack.name} by {selectedTrack.artists[0]?.name}
+          </div>
+          
+          {/* Progress Bar */}
+          {playbackStatus === 'playing' && (
+            <div style={{
+              width: "100%",
+              height: "4px",
+              background: "rgba(255,255,255,0.2)",
+              borderRadius: "2px",
+              marginBottom: "15px",
+              overflow: "hidden"
+            }}>
+              <div style={{
+                width: `${(currentTime / 30) * 100}%`,
+                height: "100%",
+                background: "linear-gradient(90deg, #1DB954, #1ED760)",
+                borderRadius: "2px",
+                transition: "width 0.5s ease"
+              }} />
+            </div>
+          )}
+          
+          {/* Spotify Embed with Enhanced Click Detection */}
+          <div 
+            style={{ position: "relative" }}
+            onMouseEnter={() => setUserInteracted(true)}
+            onClick={handleIframeInteraction}
+          >
+            {getSpotifyEmbedUrl(selectedTrack) ? (
+              <iframe
+                ref={iframeRef}
+                src={getSpotifyEmbedUrl(selectedTrack)}
+                width="100%"
+                height={getAccuracyBasedHeight(accuracy)}
+                frameBorder="0"
+                allowFullScreen=""
+                allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                loading="lazy"
+                style={{ 
+                  borderRadius: "12px",
+                  filter: isPlaying ? "brightness(1)" : "brightness(0.8)",
+                  transition: "filter 0.3s ease"
+                }}
+              />
+            ) : (
+              // Fallback when embed URL can't be generated
+              <div style={{
+                width: "100%",
+                height: getAccuracyBasedHeight(accuracy),
+                background: "rgba(0,0,0,0.3)",
+                borderRadius: "12px",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                border: "2px dashed rgba(255,255,255,0.3)",
+                color: "white",
+                textAlign: "center",
+                padding: "20px"
+              }}>
+                <div style={{ fontSize: "48px", marginBottom: "15px" }}>🎵</div>
+                <div style={{ fontSize: "16px", fontWeight: "600", marginBottom: "10px" }}>
+                  Unable to embed this track
+                </div>
+                <div style={{ fontSize: "12px", opacity: "0.7", marginBottom: "15px" }}>
+                  This song might not be available for embedding
+                </div>
+                {getSpotifyWebUrl(selectedTrack) && (
+                  <a 
+                    href={getSpotifyWebUrl(selectedTrack)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      background: "#1DB954",
+                      color: "white",
+                      padding: "10px 20px",
+                      borderRadius: "25px",
+                      textDecoration: "none",
+                      fontSize: "14px",
+                      fontWeight: "600",
+                      boxShadow: "0 4px 15px rgba(29, 185, 84, 0.4)",
+                      transition: "transform 0.2s ease"
+                    }}
+                    onMouseEnter={(e) => e.target.style.transform = "scale(1.05)"}
+                    onMouseLeave={(e) => e.target.style.transform = "scale(1)"}
+                  >
+                    🎧 Open in Spotify
+                  </a>
+          )}
+        </div>
+      )}
+
+      {/* Debug Information (only in development) */}
+      {process.env.NODE_ENV === 'development' && selectedTrack && (
+        <div style={{
+          marginTop: "20px",
+          background: "rgba(0, 0, 0, 0.2)",
+          padding: "15px",
+          borderRadius: "10px",
+          border: "1px solid rgba(255, 255, 255, 0.1)"
+        }}>
+          <div style={{
+            fontSize: "12px",
+            fontWeight: "600",
+            marginBottom: "10px",
+            color: "rgba(255, 255, 255, 0.9)"
+          }}>
+            🔧 Debug Info (Development Only):
+          </div>
+          
+          <div style={{ fontSize: "10px", color: "rgba(255, 255, 255, 0.7)", fontFamily: "monospace" }}>
+            <div>Track ID: {selectedTrack.id || 'Missing'}</div>
+            <div>Track URI: {selectedTrack.uri || 'Missing'}</div>
+            <div>External URL: {selectedTrack.external_urls?.spotify || selectedTrack.external_url || 'Missing'}</div>
+            <div>Embed URL: {getSpotifyEmbedUrl(selectedTrack) || 'Could not generate'}</div>
+            <div>Web URL: {getSpotifyWebUrl(selectedTrack) || 'Could not generate'}</div>
+          </div>
+        </div>
+      )}            {/* Overlay for interaction detection */}
+            {playbackStatus === 'ready' && getSpotifyEmbedUrl(selectedTrack) && (
+              <div style={{
+                position: "absolute",
+                top: "0",
+                left: "0",
+                right: "0",
+                bottom: "0",
+                background: "rgba(29, 185, 84, 0.1)",
+                borderRadius: "12px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: "pointer",
+                transition: "opacity 0.3s ease"
+              }}
+              onClick={handleIframeInteraction}
+              >
+                <div style={{
+                  background: "#1DB954",
+                  color: "white",
+                  padding: "10px 20px",
+                  borderRadius: "25px",
+                  fontSize: "14px",
+                  fontWeight: "600",
+                  boxShadow: "0 4px 15px rgba(29, 185, 84, 0.4)"
+                }}>
+                  ▶️ Click to start playing
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Playback Instructions */}
+          <div style={{
+            textAlign: "center",
+            marginTop: "10px",
+            fontSize: "11px",
+            color: isPlaying ? "#1DB954" : "rgba(255,255,255,0.7)",
+            fontWeight: "600"
+          }}>
+            {isPlaying 
+              ? "🎵 Music is playing! Use Spotify controls above to pause/play"
+              : "▶️ Click the play button in the Spotify player above to start music"
+            }
+          </div>
+        </div>
+      )}
+
+      {/* Track Selection */}
+      <div>
+        <div style={{
+          fontSize: "13px",
+          fontWeight: "600",
+          marginBottom: "12px",
+          opacity: "0.9"
+        }}>
+          🎵 More songs matching your {emotion} mood:
+        </div>
+        
+        <div style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
+          gap: "10px"
+        }}>
+          {tracks.slice(1, 6).map((track, idx) => (
+            <div
+              key={idx}
+              onClick={() => {
+                setSelectedTrack(track);
+                setPlaybackStatus('stopped');
+                setIsPlaying(false);
+                setCurrentTime(0);
+              }}
+              style={{
+                background: selectedTrack?.id === track.id ? 
+                  "rgba(29, 185, 84, 0.4)" : "rgba(255,255,255,0.1)",
+                padding: "12px",
+                borderRadius: "8px",
+                cursor: "pointer",
+                transition: "all 0.3s ease",
+                border: selectedTrack?.id === track.id ? 
+                  "2px solid #1DB954" : "1px solid rgba(255,255,255,0.2)",
+                position: "relative"
+              }}
+              onMouseEnter={(e) => {
+                if (selectedTrack?.id !== track.id) {
+                  e.currentTarget.style.background = "rgba(255,255,255,0.2)";
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (selectedTrack?.id !== track.id) {
+                  e.currentTarget.style.background = "rgba(255,255,255,0.1)";
+                }
+              }}
+            >
+              {/* Play Indicator */}
+              {selectedTrack?.id === track.id && (
+                <div style={{
+                  position: "absolute",
+                  top: "8px",
+                  right: "8px",
+                  background: "#1DB954",
+                  color: "white",
+                  borderRadius: "50%",
+                  width: "20px",
+                  height: "20px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: "10px"
+                }}>
+                  {isPlaying ? "🎵" : "⏸️"}
+                </div>
+              )}
+
+              <div style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "8px"
+              }}>
+                {track.album?.images?.[2] && (
+                  <img 
+                    src={track.album.images[2].url} 
+                    alt={track.name}
+                    style={{
+                      width: "32px",
+                      height: "32px",
+                      borderRadius: "4px",
+                      border: selectedTrack?.id === track.id ? "2px solid #1DB954" : "none"
+                    }}
+                  />
+                )}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{
+                    fontSize: "12px",
+                    fontWeight: "600",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                    color: selectedTrack?.id === track.id ? "#1DB954" : "white"
+                  }}>
+                    {track.name}
+                  </div>
+                  <div style={{
+                    fontSize: "10px",
+                    opacity: "0.8",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap"
+                  }}>
+                    {track.artists[0]?.name}
+                  </div>
+                  {/* Click to play indicator and external link */}
+                  <div style={{
+                    fontSize: "9px",
+                    color: selectedTrack?.id === track.id ? "#1DB954" : "rgba(255,255,255,0.6)",
+                    fontWeight: "600",
+                    marginTop: "2px",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center"
+                  }}>
+                    <span>
+                      {selectedTrack?.id === track.id ? "• Now Selected" : "• Click to Play"}
+                    </span>
+                    {getSpotifyWebUrl(track) && (
+                      <a 
+                        href={getSpotifyWebUrl(track)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e) => e.stopPropagation()} // Prevent card selection
+                        style={{
+                          color: "#1DB954",
+                          textDecoration: "none",
+                          fontSize: "10px",
+                          opacity: "0.8",
+                          transition: "opacity 0.2s ease"
+                        }}
+                        onMouseEnter={(e) => e.target.style.opacity = "1"}
+                        onMouseLeave={(e) => e.target.style.opacity = "0.8"}
+                        title="Open in Spotify"
+                      >
+                        🔗
+                      </a>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Accuracy Match Info */}
+      <div style={{
+        textAlign: "center",
+        marginTop: "15px",
+        padding: "10px",
+        background: "rgba(255, 255, 255, 0.1)",
+        borderRadius: "8px",
+        fontSize: "11px",
+        fontWeight: "600"
+      }}>
+        🎯 Songs matched to your {Math.round(accuracy * 100)}% accuracy {emotion} analysis
+        <br />
+        {accuracy >= 0.8 && "🔥 High accuracy = More intense, energetic tracks"}
+        {accuracy >= 0.6 && accuracy < 0.8 && "⚡ Medium accuracy = Balanced, moderate tracks"}
+        {accuracy < 0.6 && "🌿 Lower accuracy = Gentle, soothing tracks"}
+      </div>
+
+      {/* Playback History */}
+      {playbackHistory.length > 0 && (
+        <div style={{
+          marginTop: "20px",
+          background: "rgba(0, 0, 0, 0.2)",
+          padding: "15px",
+          borderRadius: "10px",
+          border: "1px solid rgba(255, 255, 255, 0.1)"
+        }}>
+          <div style={{
+            fontSize: "12px",
+            fontWeight: "600",
+            marginBottom: "10px",
+            color: "rgba(255, 255, 255, 0.9)"
+          }}>
+            🎵 Recent Playback Activity:
+          </div>
+          
+          {playbackHistory.slice(-3).map((entry, index) => (
+            <div key={index} style={{
+              fontSize: "10px",
+              color: "rgba(255, 255, 255, 0.7)",
+              marginBottom: "5px",
+              display: "flex",
+              alignItems: "center",
+              gap: "8px"
+            }}>
+              <div style={{
+                width: "8px",
+                height: "8px",
+                borderRadius: "50%",
+                background: entry.status === 'completed' ? "#1DB954" : 
+                           entry.status === 'user-playing' ? "#FFA500" : "#87CEEB"
+              }} />
+              
+              <span>
+                {entry.startTime}: "{entry.track}" by {entry.artist} - 
+                {entry.status === 'loading' && ' Loading'}
+                {entry.status === 'auto-playing' && ' Auto-started'}
+                {entry.status === 'user-playing' && ' You clicked play'}
+                {entry.status === 'completed' && ' Finished playing'}
+                {entry.endTime && ` (ended ${entry.endTime})`}
+                {entry.userInteractionTime && ` (clicked ${entry.userInteractionTime})`}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default SpotifyPlayer;

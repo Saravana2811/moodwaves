@@ -1,0 +1,83 @@
+/* Spotify Player Animations */
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+  0% { 
+    height: 8px; 
+    opacity: 0.7;
+    transform: scaleY(0.5);
+  }
+  50% { 
+    height: 20px; 
+    opacity: 1;
+    transform: scaleY(1.2);
+  }
+  100% { 
+    height: 12px; 
+    opacity: 0.8;
+    transform: scaleY(0.8);
+  }
+}
+
+@keyframes glow {
+  0% { box-shadow: 0 0 5px rgba(29, 185, 84, 0.4); }
+  50% { box-shadow: 0 0 20px rgba(29, 185, 84, 0.8); }
+  100% { box-shadow: 0 0 5px rgba(29, 185, 84, 0.4); }
+}
+
+@keyframes statusPulse {
+  0% { 
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% { 
+    transform: scale(1.1);
+    opacity: 0.8;
+  }
+  100% { 
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeIn {
+  0% { opacity: 0; transform: translateY(20px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideProgress {
+  0% { transform: scaleX(0); }
+  100% { transform: scaleX(1); }
+}
+
+/* Enhanced playing indicator styles */
+.spotify-playing {
+  animation: glow 2s ease-in-out infinite;
+}
+
+.spotify-loading {
+  animation: spin 1s linear infinite;
+}
+
+.spotify-pulse {
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.spotify-status-indicator {
+  animation: statusPulse 2s ease-in-out infinite;
+}
+
+.spotify-fade-in {
+  animation: fadeIn 0.5s ease-out;
+}
+
+/* Status colors for better visual feedback */
+.status-loading { color: #87CEEB; }
+.status-ready { color: #FFA500; }
+.status-playing { color: #1DB954; }
+.status-ended { color: #32CD32; }
+.status-stopped { color: #888; }
