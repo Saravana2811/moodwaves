@@ -5,6 +5,9 @@ import MusicService from "../../services/MusicService.js";
 const MOODWAVES_API_BASE =
   import.meta.env.VITE_MOODWAVES_API_URL || "http://localhost:5000";
 
+const MW_MUSIC_API_BASE =
+  import.meta.env.VITE_MW_MUSIC_API_URL || "http://localhost:4000";
+
 function InputBox({ onNewMessage, onPlaylistGenerated }) {
   const [text, setText] = useState("");
   const [languages, setLanguages] = useState([]);

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
-import Footer from "../after/footer.jsx";
+import Footer from "../after/Footer.jsx";
 function BeforeSignIn() {
   const [isLoaded, setIsLoaded] = useState(false);
 
@@ -315,4 +315,4 @@ function BeforeSignIn() {
   );
 }
 
-export default BeforeSignIn;
+export default BeforeSignIn;  

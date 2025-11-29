@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import Type from "./type.jsx";
-import Footer from "./footer.jsx";
+import Footer from "./Footer.jsx";
 import Input from "./InputBox.jsx";
 import Faq from "./Faq.jsx";
 import Review from "./Review.jsx";
