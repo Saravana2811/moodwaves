@@ -224,7 +224,7 @@ function BeforeSignIn() {
       <header style={navbarStyle}>
         <nav style={navbarInnerStyle}>
           <div style={brandStyle} onClick={() => handleNavigation('/')}>
-            MoodTunes
+            MoodWaves
           </div>
           <div style={navActionsStyle}>
             <button
@@ -260,7 +260,7 @@ function BeforeSignIn() {
           <div style={ctaContainerStyle}>
             <button 
               style={primaryCTAStyle}
-              onClick={() => handleNavigation('/home')}
+              onClick={() => handleNavigation('/signup')}
             >
               Get Started Free
             </button>

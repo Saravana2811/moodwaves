@@ -1,15 +1,21 @@
 import React, { useState } from "react";
+import MusicService from "../../services/MusicService.js";
 
-function InputBox({ onNewMessage }) {
+// MoodWaves backend (for saving messages), NOT the MW Music API
+const MOODWAVES_API_BASE =
+  import.meta.env.VITE_MOODWAVES_API_URL || "http://localhost:5000";
+
+function InputBox({ onNewMessage, onPlaylistGenerated }) {
   const [text, setText] = useState("");
   const [languages, setLanguages] = useState([]);
+  const [isGenerating, setIsGenerating] = useState(false);
 
   const handleCheckboxChange = (e) => {
     const { value, checked } = e.target;
     if (checked) {
-      setLanguages([...languages, value]);
+      setLanguages((prev) => [...prev, value]);
     } else {
-      setLanguages(languages.filter((lang) => lang !== value));
+      setLanguages((prev) => prev.filter((lang) => lang !== value));
     }
   };
 
@@ -17,19 +23,53 @@ function InputBox({ onNewMessage }) {
     e.preventDefault();
     if (!text.trim()) return;
 
-    try {
-      const res = await fetch("http://localhost:5000/api/messages", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text, languages }),
-      });
+    setIsGenerating(true);
 
-      const data = await res.json();
-      onNewMessage(data);
+    try {
+      // 1️⃣ Ask MusicService to generate playlist based on mood text + languages
+      const playlist = await MusicService.generatePlaylist(text, languages);
+
+      // 2️⃣ Save message to MoodWaves backend (optional logging/history)
+      let savedMessage = null;
+      try {
+        const res = await fetch(`${MOODWAVES_API_BASE}/api/messages`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text, languages }),
+        });
+
+        if (res.ok) {
+          savedMessage = await res.json();
+        } else {
+          console.warn("Saving message failed with status:", res.status);
+        }
+      } catch (err) {
+        console.warn("Could not save message to backend:", err);
+      }
+
+      // 3️⃣ Notify parent components
+      if (savedMessage && onNewMessage) {
+        onNewMessage(savedMessage);
+      }
+      if (onPlaylistGenerated) {
+        onPlaylistGenerated(playlist); // { tracks, playlistName, description, source, ... }
+      }
+
+      // 4️⃣ Reset inputs
       setText("");
       setLanguages([]);
     } catch (error) {
-      console.error("Error sending message:", error);
+      console.error("Error generating playlist:", error);
+
+      let errorMessage = "Sorry, there was an error generating your playlist.";
+      if (error.message) {
+        errorMessage += ` Details: ${error.message}`;
+      }
+      errorMessage += " Please try again!";
+
+      alert(errorMessage);
+    } finally {
+      setIsGenerating(false);
     }
   };
 
@@ -44,7 +84,8 @@ function InputBox({ onNewMessage }) {
         display: "flex",
         flexDirection: "column",
         gap: "15px",
-        maxWidth: "500px",
+        width: "50%",
+        maxWidth: "9000px",
         margin: "auto",
       }}
     >
@@ -65,55 +106,29 @@ function InputBox({ onNewMessage }) {
         onBlur={(e) => (e.target.style.border = "1px solid #ccc")}
       />
 
-      {/* Language selection */}
-      <div style={{ display: "flex", gap: "15px", flexWrap: "wrap" }}>
-        {["English", "Tamil", "Hindi", "Telugu","Malayalam","Kanadam"].map((lang) => (
-          <label
-            key={lang}
-            style={{
-              background: languages.includes(lang) ? "#7b61ff" : "#eee",
-              color: languages.includes(lang) ? "#fff" : "#333",
-              padding: "8px 12px",
-              borderRadius: "20px",
-              cursor: "pointer",
-              fontSize: "14px",
-              transition: "0.3s",
-              userSelect: "none",
-            }}
-          >
-            <input
-              type="checkbox"
-              value={lang}
-              checked={languages.includes(lang)}
-              onChange={handleCheckboxChange}
-              style={{ display: "none" }}
-            />
-            {lang}
-          </label>
-        ))}
-      </div>
 
       <button
         type="submit"
+        disabled={isGenerating}
         style={{
           padding: "12px",
           border: "none",
           borderRadius: "10px",
-          background: "#ce6714ff",
+          background: isGenerating ? "#999" : "#ce6714ff",
           color: "#fff",
           fontSize: "16px",
           fontWeight: "bold",
-          cursor: "pointer",
+          cursor: isGenerating ? "not-allowed" : "pointer",
           transition: "0.3s",
         }}
         onMouseEnter={(e) =>
-          (e.target.style.background = "black")
+          !isGenerating && (e.target.style.background = "black")
         }
         onMouseLeave={(e) =>
-          (e.target.style.background = "#ce6714ff")
+          !isGenerating && (e.target.style.background = "#ce6714ff")
         }
       >
-        Send
+        {isGenerating ? "🎵 Generating ..." : "🎵 Play Now"}
       </button>
     </form>
   );

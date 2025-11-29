@@ -4,6 +4,8 @@ import User from "../models/User.js";
 
 const router = express.Router();
 
+// Spotify integration removed: helper and endpoints deleted
+
 // Signup
 router.post("/signup", async (req, res) => {
   try {
@@ -39,6 +41,8 @@ router.post("/signup", async (req, res) => {
     res.status(500).json({ message: "Server error", error: err.message });
   }
 });
+
+// Spotify integration endpoints removed
 
 // Login
 router.post("/login", async (req, res) => {

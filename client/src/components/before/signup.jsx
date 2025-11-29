@@ -31,7 +31,7 @@ function SignUp() {
     borderRadius: '12px',
     padding: '22px',
     color: '#e5e7eb',
-    boxShadow: '0 10px 30px rgba(0,0,0,0.35)'
+    boxShadow: '0 10px 30px rgba(0, 0, 0, 0)'
   }
 
   const titleStyle = {

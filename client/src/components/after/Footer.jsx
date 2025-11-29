@@ -45,7 +45,7 @@ const Footer = () => {
 
       <div className="footer-bottom">
         <p>© 2025 MoodWaves. All rights reserved. Licensed & Insured.</p>
-        <p className="design">Designed and Maintained By Saravana M || Shanmuga Patel Kani C</p>
+        <p className="design">Designed and Maintained By Saravana M</p>
       </div>
     </footer>
   );

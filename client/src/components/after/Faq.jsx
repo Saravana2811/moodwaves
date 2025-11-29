@@ -14,23 +14,19 @@ const Faq = () => {
     },
     {
       question: "Is MoodWaves free to use?",
-      answer: "MoodWaves offers both free and premium tiers. Free users can generate mood-based playlists with basic features, while premium subscribers get unlimited playlist generation, advanced mood analysis, offline downloads, and exclusive content."
+      answer: "Of Course, It is free for all the users."
     },
     {
       question: "Can I save my generated playlists?",
-      answer: "Yes! All users can save their generated playlists to their personal library. Premium users can also export playlists to Spotify, Apple Music, and other streaming platforms."
-    },
-    {
-      question: "What music streaming services does MoodWaves support?",
-      answer: "MoodWaves integrates with major streaming platforms including Spotify, Apple Music, YouTube Music, and Amazon Music. You can connect your accounts to seamlessly transfer playlists and access your existing music library."
+      answer: "No!The users can't save their generated playlists because this feature is not supported yet."
     },
     {
       question: "How accurate are the mood recommendations?",
       answer: "Our AI continuously learns from user feedback and listening patterns to improve accuracy. Most users report 85-90% satisfaction with their mood-matched recommendations, and the system gets better as you use it more."
     },
     {
-      question: "Can I customize my music preferences?",
-      answer: "Absolutely! You can set preferred genres, artists, decades, languages, and even exclude certain types of music. The more you customize your profile, the better our recommendations become."
+      question: "What are the languages supported?",
+      answer: "MoodWaves will support three languages: English, Tamil and Hindi. More languages will be added in future updates."
     },
     {
       question: "Is my data secure with MoodWaves?",
