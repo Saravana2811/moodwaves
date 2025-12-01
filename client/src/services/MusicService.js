@@ -1,7 +1,7 @@
 // client/src/services/MusicService.js
 
 // 🔗 MW Music backend base URL (set in client/.env as VITE_MUSIC_API_URL)
-const API_BASE = import.meta.env.VITE_MUSIC_API_URL || "http://localhost:4000";
+const API_BASE = import.meta.env.VITE_MUSIC_API_URL || "https://mv-music-backend.onrender.com";
 
 // Map high-level moods to MW playlist IDs
 const MOOD_TO_PLAYLIST = {
