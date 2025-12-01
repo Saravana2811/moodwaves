@@ -102,7 +102,8 @@ function SignUp() {
     if (!isFormValid) return
 
     try {
-      const res = await fetch("http://localhost:5000/api/auth/signup", {
+      const MOODWAVES_API = import.meta.env.VITE_MOODWAVES_API_URL || "http://localhost:5000"
+      const res = await fetch(`${MOODWAVES_API}/api/auth/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, email, password })
