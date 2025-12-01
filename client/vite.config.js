@@ -7,7 +7,8 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'http://localhost:5000',
+        // Use env var when available (useful for dev on other devices)
+        target: process.env.VITE_MOODWAVES_API_URL || 'https://mv-music-backend.onrender.com',
         changeOrigin: true,
         secure: false,
       }

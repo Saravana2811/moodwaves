@@ -102,7 +102,7 @@ function SignUp() {
     if (!isFormValid) return
 
     try {
-      const MOODWAVES_API = import.meta.env.VITE_MOODWAVES_API_URL || "http://localhost:5000"
+      const MOODWAVES_API = import.meta.env.VITE_MOODWAVES_API_URL || "https://mv-music-backend.onrender.com"
       const res = await fetch(`${MOODWAVES_API}/api/auth/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
