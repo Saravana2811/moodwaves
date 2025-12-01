@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import SpotifyPlayer from '../../services/SpotifyPlayer.js';
+
 
 const AudioPlayer = ({ playlist = [] }) => {
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
