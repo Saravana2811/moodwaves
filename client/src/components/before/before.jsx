@@ -260,7 +260,7 @@ function BeforeSignIn() {
           <div style={ctaContainerStyle}>
             <button 
               style={primaryCTAStyle}
-              onClick={() => handleNavigation('/home')}
+              onClick={() => handleNavigation('/signup')}
             >
               Get Started Free
             </button>
